@@ -4,17 +4,12 @@
     android:versionCode="1"
     android:versionName="1.0" >
  
-    <permission
-        android:name="edu.utexas.shenfu.mapsapp.permission.MAPS_RECEIVE"
-        android:protectionLevel="signature" />
- 
-    <uses-permission android:name="edu.utexas.shenfu.mapsapp.permission.MAPS_RECEIVE" />
- 
     <uses-sdk
         android:minSdkVersion="12"
         android:targetSdkVersion="19" />
  
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -49,7 +44,7 @@
         <!--  Google API Key -->
         <meta-data
 			android:name="com.google.android.maps.v2.API_KEY"
-			android:value="AIzaSyD9fOPzWTkvBgB6m8PVocK17lBsNrNXRiQ"/>
+			android:value="AIzaSyBYG_Ch_bvFTU5HkevEirWi4VVzCDiiZPE"/>
         
         
         <meta-data android:name="com.google.android.gms.version" 
