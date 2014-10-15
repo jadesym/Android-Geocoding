@@ -1473,12 +1473,15 @@ containing a value of this type.
         public static final int action_menu_divider=0x7f050016;
         public static final int action_menu_presenter=0x7f050017;
         public static final int action_mode_close_button=0x7f050036;
-        public static final int action_settings=0x7f050051;
+        public static final int action_settings=0x7f050054;
         public static final int activity_chooser_view_content=0x7f050037;
         public static final int always=0x7f05000b;
         public static final int beginning=0x7f050011;
         public static final int book_now=0x7f050028;
         public static final int button1=0x7f05004f;
+        public static final int button2=0x7f050051;
+        public static final int button3=0x7f050052;
+        public static final int button4=0x7f050053;
         public static final int buyButton=0x7f050022;
         public static final int buy_now=0x7f050027;
         public static final int buy_with_google=0x7f050026;

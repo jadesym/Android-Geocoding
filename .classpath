@@ -10,5 +10,6 @@
 			<attribute name="javadoc_location" value="file:/C:/Users/Connie/AppData/Local/Android/android-sdk/add-ons/addon-google_apis_x86-google-19/docs/reference"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Connie/Pictures/Dropbox/Eclipse Workspace/commons-io-2.4/commons-io-2.4.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

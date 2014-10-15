@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -21,8 +22,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
  
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -49,12 +53,20 @@ import android.widget.EditText;
 import android.widget.Toast;
 import com.google.android.gms.maps.MapFragment;
 
+import java.io.ByteArrayOutputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.util.List;
+import org.apache.commons.io.IOUtils;
+
 
 public class MainActivity extends Activity {
 	
 	private static GoogleMap map;
 	private GoogleMap googleMap;
 	private static final String GEO_CODE_SERVER = "http://maps.googleapis.com/maps/api/geocode/json?";
+	private static final String URL = "http://maps.googleapis.com/maps/api/geocode/json"; 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -86,54 +98,102 @@ public class MainActivity extends Activity {
 
 	}
 	
-//	public static LatLng getLatLongFromAddress(String youraddress) {
-//	    String uri = "http://maps.google.com/maps/api/geocode/json?address=" +
-//	                  youraddress + "&sensor=falsekey=AIzaSyBYG_Ch_bvFTU5HkevEirWi4VVzCDiiZPE";
-//	    HttpGet httpGet = new HttpGet(uri);
-//	    HttpClient client = new DefaultHttpClient();
-//	    HttpResponse response;
-//	    StringBuilder stringBuilder = new StringBuilder();
-//
-//	    try {
-//	        response = client.execute(httpGet);
-//	        HttpEntity entity = response.getEntity();
-//	        InputStream stream = entity.getContent();
-//	        int b;
-//	        while ((b = stream.read()) != -1) {
-//	            stringBuilder.append((char) b);
-//	        }
-//	    } catch (ClientProtocolException e) {
-//	        e.printStackTrace();
-//	    } catch (IOException e) {
-//	        e.printStackTrace();
-//	    }
-//
-//	    JSONObject jsonObject = new JSONObject();
-//	    try {
-//	        jsonObject = new JSONObject(stringBuilder.toString());
-//
-//	        double lng = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
-//	            .getJSONObject("geometry").getJSONObject("location")
-//	            .getDouble("lng");
-//
-//	        double lat = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
-//	            .getJSONObject("geometry").getJSONObject("location")
-//	            .getDouble("lat");
-//
-//	        Log.d("latitude", "" + lat);
-//	        Log.d("longitude", "" + lng);
-//	        LatLng location = new LatLng(lat, lng);
-//	        String strLat = Double.toString(lat);
-//	        String strLng = Double.toString(lng);
-//	        return location;
-//
-//
-//	    } catch (JSONException e) {
-//	        e.printStackTrace();
-//	    }
-//		return null;
-//
-//	}
+	public static LatLng getLatLongFromAddress(String youraddress) {
+	    String uri = "http://maps.google.com/maps/api/geocode/json?address=" +
+	                  youraddress + "&key=AIzaSyBYG_Ch_bvFTU5HkevEirWi4VVzCDiiZPE";
+	    HttpGet httpGet = new HttpGet(uri);
+	    HttpClient client = new DefaultHttpClient();
+	    HttpResponse response;
+	    StringBuilder stringBuilder = new StringBuilder();
+	    StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+	    try {
+	        response = client.execute(httpGet);
+	        HttpEntity entity = response.getEntity();
+	        InputStream stream = entity.getContent();
+	        int b;
+	        while ((b = stream.read()) != -1) {
+	            stringBuilder.append((char) b);
+	        }
+	    } catch (ClientProtocolException e) {
+	        e.printStackTrace();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+
+	    JSONObject jsonObject = new JSONObject();
+	    try {
+	        jsonObject = new JSONObject(stringBuilder.toString());
+
+	        double lng = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
+	            .getJSONObject("geometry").getJSONObject("location")
+	            .getDouble("lng");
+
+	        double lat = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
+	            .getJSONObject("geometry").getJSONObject("location")
+	            .getDouble("lat");
+
+	        Log.d("latitude", "" + lat);
+	        Log.d("longitude", "" + lng);
+	        LatLng location = new LatLng(lat, lng);
+	        String strLat = Double.toString(lat);
+	        String strLng = Double.toString(lng);
+	        return location;
+
+
+	    } catch (JSONException e) {
+	        e.printStackTrace();
+	    }
+		return null;
+
+	}
+	
+	/*
+	* Here the fullAddress String is in format like "address,city,state,zipcode". Here address means "street number + route" .
+	*
+	*/
+	public String getJSONByGoogle(String fullAddress) {
+		
+		
+		/*
+		* Create an java.net.URL object by passing the request URL in constructor. 
+		* Here you can see I am converting the fullAddress String in UTF-8 format. 
+		* You will get Exception if you don't convert your address in UTF-8 format. Perhaps google loves UTF-8 format. :)
+		* In parameter we also need to pass "sensor" parameter.
+		* sensor (required parameter) — Indicates whether or not the geocoding request comes from a device with a location sensor. This value must be either true or false.
+		*/
+		URL url;
+		try {
+			url = new URL(fullAddress);
+			// Open the Connection 
+
+			URLConnection conn;
+			conn = url.openConnection();
+			//This is Simple a byte array output stream that we will use to keep the output data from google. 
+			ByteArrayOutputStream output = new ByteArrayOutputStream(1024);
+		
+			// copying the output data from Google which will be either in JSON or XML depending on your request URL that in which format you have requested.
+			IOUtils.copy(conn.getInputStream(), output);
+		
+			//close the byte array output stream now.
+			output.close();
+			return output.toString(); // This returned String is JSON string from which you can retrieve all key value pair and can save it in POJO.
+
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	
+	
+	}
+	
 	
 	/**
      * function to load map. If map is not created it will create it for you
@@ -152,25 +212,83 @@ public class MainActivity extends Activity {
     }
  
     
-    public void onClick (View view) {
+    public void onClick (View view) throws IOException {
 		EditText text = (EditText) findViewById(R.id.main_input);
-		Toast.makeText(this, text.getText().toString(),
-		Toast.LENGTH_LONG).show();
-//		findLocation(text.getText().toString());
-//		LatLng location = getLatLongFromAddress(text.getText().toString());
+		String location = text.getText().toString();
 		
-//		map.setMyLocationEnabled(true);
-//        map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 13));
+		Geocoder gc = new Geocoder(this);
+		List<Address> list = gc.getFromLocationName(location, 1);
+		Address add = list.get(0);
+		String locality = add.getLocality();
+		String postal_code = add.getPostalCode();
+		Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
+		
+		double lat = add.getLatitude();
+		double lng = add.getLongitude();
+        LatLng newLocation = new LatLng(lat, lng);
+		
+
+//		Toast.makeText(this, text.getText().toString(), Toast.LENGTH_LONG).show();
+		
+//		String getUrl = buildUrl(text.getText().toString());
+//		try {
+//			URL newUrl = new URL(getUrl);
+//			
+//		} catch (MalformedURLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		LatLng newLocation = getLatLongFromAddress(getUrl);
+//		String jsonString = getJSONByGoogle(getUrl);
+//		Toast.makeText(this, getUrl, Toast.LENGTH_LONG).show();
+//		JSONObject jsonObject = new JSONObject();
+//		
+//	    try {
+//	        jsonObject = new JSONObject(jsonString);
 //
-//        map.addMarker(new MarkerOptions()
-//                .title("Sydney")
-//                .snippet("The most populous city in Australia.")
-//                .position(location));
-        // create marker
-//        MarkerOptions marker = new MarkerOptions().position(location).title("Hello Maps ");
-         
-        // adding marker
-//        googleMap.addMarker(marker);
+//	        double lng = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
+//	            .getJSONObject("geometry").getJSONObject("location")
+//	            .getDouble("lng");
+//
+//	        double lat = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
+//	            .getJSONObject("geometry").getJSONObject("location")
+//	            .getDouble("lat");
+//
+//	        Log.d("latitude", "" + lat);
+//	        Log.d("longitude", "" + lng);
+//	        GoogleMap map = ((MapFragment) getFragmentManager()
+//	                .findFragmentById(R.id.map)).getMap();	        
+//	        LatLng newLoc = new LatLng(lat, lng);
+//
+//	        map.setMyLocationEnabled(true);
+//	        map.moveCamera(CameraUpdateFactory.newLatLngZoom(newLoc, 13));
+//
+//	        map.addMarker(new MarkerOptions()
+//	                .title("Input Location")
+//	                .snippet("This is the location you chose.")
+//	                .position(newLoc));
+//
+//	    } catch (JSONException e) {
+//	        e.printStackTrace();
+//	    }
+		
+		
+        GoogleMap map = ((MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map)).getMap();
+//		LatLng location = new LatLng(-30.867, 160.206);
+//		
+		map.setMyLocationEnabled(true);
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 13));
+//
+        map.addMarker(new MarkerOptions()
+                .title("Locality: " + locality)
+                .snippet("Postal Code: " + postal_code)
+                .position(newLocation));
+//        // create marker
+        MarkerOptions marker = new MarkerOptions().position(newLocation).title("Hello Maps ");
+//         
+//        // adding marker
+        googleMap.addMarker(marker);
 		
 		  
 	} 
@@ -235,7 +353,7 @@ public class MainActivity extends Activity {
 
         builder.append("address=");
         builder.append(code.replaceAll(" ", "+"));
-        builder.append("&sensor=false");
+        builder.append("&key=AIzaSyBYG_Ch_bvFTU5HkevEirWi4VVzCDiiZPE");
 
         return builder.toString();
     }
